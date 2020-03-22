@@ -1,0 +1,98 @@
+<!DOCTYPE html>                                                                                                                  
+<!-- {{{ HTML/CSS Part -->                                                                                                       
+<html>                                                                                                                           
+                                                                                                                                 
+<head>                                                                                                                           
+    <title>WebSocket node todo</title>                                                                                                       
+    <meta charset="utf-8">                                                                                                       
+                                           
+                                                                                                                                 
+<style>                                                                                                                          
+body{                                                                                                                            
+    text-align: center;                                                                                                          
+}                                                                                                                     
+                                                                                                                                 
+#response{                                                                                                                       
+    text-align:left;                                                                                                             
+}                                                                                                                                
+                                                                                                                                 
+</style>                                                                                                                         
+</head>                                                                                                                          
+                                                                                                                                 
+<body>                                                                                                                           
+    <h1>Todo List </h1>                                                                                                          
+                                                                                                                                 
+    <input type="text" id="textbox">                                                                                             
+    <input type="button" id="submit" value="GO">                                                                                 
+        <ul id="response">                                                                                                       
+        </ul>                                                                                                                    
+                                                                                                                                 
+</body>                                                                                                                          
+                                                                                                                                 
+<!-- }}} -->                                                                                                                     
+<script>
+    const IP_ADDRESS = "";//put here your websocket server IP
+    const PORT = 8080;//put here the port of the websocket server
+                                                                                                                                                                                                 
+    const socket= new WebSocket('ws://'+IP_ADDRESS+':'+PORT);                                                                    
+                                                                                                                                 
+    let textbox=document.getElementById("textbox");                                                                              
+    let submit=document.getElementById("submit");                                                                                
+    let response=document.getElementById("response");                                                                            
+                                                                                                                                 
+    socket.onopen = ( event ) => {                                                                                               
+    };                                                                                                                           
+                                                                                                                                 
+    let X = []                                                                                                                   
+                                                                                                                                 
+    socket.onmessage = ( message ) => {                                                                                          
+        let received_object = JSON.parse(message.data);                                                                          
+                                                                                                                                 
+        if (received_object.type === "DLV" ){                                                                                    
+            X = received_object.value;                                                                                           
+            update(X)                                                                                                            
+        }                                                                                                                        
+    };                                                                                                                           
+
+//Given an array updates the displayed list
+function update(array){                                                                                                          
+    response.innerHTML="";                                                                                                       
+    for (let i =0 ; i < array.length ; i++){                                                                                     
+        response.innerHTML+=`<li> ${array[i]}<input type="button" id="delete_${i}" value="X"></li>`;                                                                       
+    }                                                                                                                            
+    for (let j=0 ; j < array.length ; j++){                                                                                      
+        document.getElementById("delete_"+j).addEventListener("click", () => { DEL_entry(j); });                                 
+    }                                                                                                                            
+}
+
+//Sends the content of the textbox to the server as an ADD request                                                                                                                                                                                                                                          
+function ADD_entry(){                             
+    let obj = {                                   
+        type : "ADD",                             
+        value : textbox.value,                    
+    };                                            
+    socket.send(JSON.stringify(obj))              
+    textbox.value="";                             
+}                                                 
+                                                  
+submit.onclick = ADD_entry;                       
+                                                  
+//sends a delete request to the server (deletes the i-th element)                                                  
+function DEL_entry(i){                            
+    let obj = {                                   
+        type : "DEL",                             
+        value : i,                                
+    };                                            
+    socket.send(JSON.stringify(obj))              
+}                                                 
+                                                  
+                                                  
+                                                  
+                                                  
+                                                  
+                                                  
+                                                  
+</script>                                         
+                                                  
+</html>                                           
+                                                  
